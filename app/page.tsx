@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import banner from "@/public/images/banner.png";
 
 export default function HomePage() {
   return (
     <>
       <Image
-        src={banner}
+        src="/images/banner.png"
+        width={2172}
+        height={724}
         alt="Green Pastures Technology Group banner: a sunrise over a calm lake and green pastures, with the words Building What's Next."
         priority
         sizes="(max-width: 1100px) 100vw, 1100px"
