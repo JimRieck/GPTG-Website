@@ -334,6 +334,44 @@ th {
   align-items: flex-start;
 }
 
+.status-chart {
+  margin-bottom: 28px;
+}
+
+.chart-body {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.chart-body svg {
+  flex-shrink: 0;
+  max-width: 100%;
+  height: auto;
+}
+
+.legend {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
 .status-form {
   display: flex;
   gap: 6px;

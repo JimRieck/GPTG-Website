@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listLeads } from "@/lib/leads";
-import { LEAD_STATUS_LABELS } from "@/lib/lead-status";
+import { LEAD_STATUSES, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/lead-status";
 import { signOutAdmin } from "../actions";
 import VerifyButton from "./VerifyButton";
 import { StatusForm } from "./LeadRowActions";
+import StatusPie from "./StatusPie";
 
 export const metadata = {
   title: "Leads",
@@ -21,10 +22,17 @@ export default async function LeadsPage({
   const { email } = await requireAdmin();
   const { archived } = await searchParams;
   const showArchived = archived === "1";
-  const leads = await listLeads({ includeArchived: showArchived });
+  // Load everything once: the chart counts all leads, the table hides archived ones by default.
+  const allLeads = await listLeads({ includeArchived: true });
+  const leads = showArchived ? allLeads : allLeads.filter((l) => l.status !== "archived");
+
+  const counts = Object.fromEntries(LEAD_STATUSES.map((s) => [s, 0])) as Record<LeadStatus, number>;
+  for (const lead of allLeads) counts[lead.status] += 1;
 
   return (
     <section className="wide-page">
+      <StatusPie counts={counts} />
+
       <div className="admin-bar">
         <h1>
           {showArchived ? "Archived leads" : "Leads"} ({leads.length})
