@@ -42,14 +42,6 @@ export default function HomePage() {
     <>
       <section className="band hero" aria-labelledby="hero-title">
         <div className="container">
-          <h1 id="hero-title">Spend less time on manual work.</h1>
-          <p className="lead">
-            Green Pastures Technology Group builds websites, connects systems, and automates everyday workflows
-            for nonprofits and small businesses.
-          </p>
-          <Link href="/contact" className="button on-dark">
-            Start a conversation
-          </Link>
           <Image
             src="/images/banner.png"
             width={2172}
@@ -59,6 +51,14 @@ export default function HomePage() {
             sizes="(max-width: 1100px) 100vw, 1100px"
             className="banner"
           />
+          <h1 id="hero-title">Spend less time on manual work.</h1>
+          <p className="lead">
+            Green Pastures Technology Group builds websites, connects systems, and automates everyday workflows
+            for nonprofits and small businesses.
+          </p>
+          <Link href="/contact" className="button on-dark">
+            Start a conversation
+          </Link>
         </div>
       </section>
 
