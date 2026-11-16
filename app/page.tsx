@@ -65,8 +65,7 @@ export default function HomePage() {
       <section className="section" aria-labelledby="problems-title">
         <h2 id="problems-title">Problems we can help with</h2>
         <p className="section-intro">
-          These are examples of the kind of work we take on. Every project starts with your process, not a
-          predefined package.
+          These are examples of the kind of work we take on.
         </p>
         <ul className="stack">
           {problems.map((item) => (
@@ -103,7 +102,7 @@ export default function HomePage() {
         <h2 id="how-title">How we work</h2>
         <p>
           We start by understanding how your work gets done today. Then we agree on scope, cost, and timeline
-          before any work begins, so you always know what you are getting and when.
+          before any work begins, so there are no surprises about cost or timing.
         </p>
         <p className="question">What&apos;s one process you wish were easier?</p>
         <Link href="/contact" className="button">
