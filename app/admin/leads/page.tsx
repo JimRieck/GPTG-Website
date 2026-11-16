@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listLeads } from "@/lib/leads";
+import { LEAD_STATUS_LABELS } from "@/lib/lead-status";
 import { signOutAdmin } from "../actions";
 import VerifyButton from "./VerifyButton";
+import { StatusForm } from "./LeadRowActions";
 
 export const metadata = {
   title: "Leads",
@@ -10,15 +13,26 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function LeadsPage() {
+export default async function LeadsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ archived?: string }>;
+}) {
   const { email } = await requireAdmin();
-  const leads = await listLeads();
+  const { archived } = await searchParams;
+  const showArchived = archived === "1";
+  const leads = await listLeads({ includeArchived: showArchived });
 
   return (
     <section className="wide-page">
       <div className="admin-bar">
-        <h1>Leads ({leads.length})</h1>
+        <h1>
+          {showArchived ? "Archived leads" : "Leads"} ({leads.length})
+        </h1>
         <div>
+          <Link href={showArchived ? "/admin/leads" : "/admin/leads?archived=1"} className="button secondary small">
+            {showArchived ? "Hide archived" : "Show archived"}
+          </Link>{" "}
           <span className="muted">{email}</span>{" "}
           <form action={signOutAdmin} style={{ display: "inline" }}>
             <button type="submit" className="button secondary">
@@ -43,7 +57,7 @@ export default async function LeadsPage() {
                 <th>Phone</th>
                 <th>Message</th>
                 <th>Address check</th>
-                <th></th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -83,6 +97,10 @@ export default async function LeadsPage() {
                   </td>
                   <td>
                     <VerifyButton leadId={lead.id} />
+                  </td>
+                  <td>
+                    <StatusForm leadId={lead.id} status={lead.status} />
+                    <small className="muted">{LEAD_STATUS_LABELS[lead.status]}</small>
                   </td>
                 </tr>
               ))}

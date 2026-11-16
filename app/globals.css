@@ -334,6 +334,19 @@ th {
   align-items: flex-start;
 }
 
+.status-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-form select {
+  width: auto;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+}
+
 .ok-text {
   color: var(--ok);
 }

@@ -4,8 +4,23 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isAdminEmail, requireAdmin } from "@/lib/auth";
-import { getLead, saveAddressVerification } from "@/lib/leads";
+import { getLead, saveAddressVerification, updateLeadStatus } from "@/lib/leads";
 import { verifyAddress, type AddressVerification } from "@/lib/geocode";
+import { isLeadStatus } from "@/lib/lead-status";
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function setLeadStatus(formData: FormData): Promise<void> {
+  await requireAdmin();
+
+  const id = String(formData.get("id") ?? "");
+  const status = String(formData.get("status") ?? "");
+  if (!UUID_RE.test(id)) throw new Error("Invalid lead id.");
+  if (!isLeadStatus(status)) throw new Error("Invalid status.");
+
+  await updateLeadStatus(id, status);
+  revalidatePath("/admin/leads");
+}
 
 export type LoginState = { error?: string };
 
@@ -42,7 +57,7 @@ export async function verifyLeadAddress(_prev: VerifyState, formData: FormData):
   await requireAdmin();
 
   const id = String(formData.get("id") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(id)) return { ok: false, message: "Invalid lead id." };
+  if (!UUID_RE.test(id)) return { ok: false, message: "Invalid lead id." };
 
   const lead = await getLead(id);
   if (!lead) return { ok: false, message: "Lead not found." };

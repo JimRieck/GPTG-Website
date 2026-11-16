@@ -1,10 +1,12 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
 import type { ContactInput } from "@/lib/validation";
 import type { AddressVerification } from "@/lib/geocode";
+import type { LeadStatus } from "@/lib/lead-status";
 
 export type Lead = {
   id: string;
   created_at: string;
+  status: LeadStatus;
   name: string;
   company_name: string | null;
   address: string;
@@ -40,12 +42,15 @@ export async function insertLead(input: ContactInput): Promise<{ id: string }> {
   return { id: data.id as string };
 }
 
-export async function listLeads(): Promise<Lead[]> {
-  const { data, error } = await getServiceSupabase()
+export async function listLeads(options: { includeArchived?: boolean } = {}): Promise<Lead[]> {
+  let query = getServiceSupabase()
     .from("leads")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(500);
+  if (!options.includeArchived) query = query.neq("status", "archived");
+
+  const { data, error } = await query;
 
   if (error) throw new Error(`Failed to load leads: ${error.message}`);
   return (data ?? []) as Lead[];
@@ -55,6 +60,11 @@ export async function getLead(id: string): Promise<Lead | null> {
   const { data, error } = await getServiceSupabase().from("leads").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(`Failed to load lead: ${error.message}`);
   return (data as Lead | null) ?? null;
+}
+
+export async function updateLeadStatus(id: string, status: LeadStatus): Promise<void> {
+  const { error } = await getServiceSupabase().from("leads").update({ status }).eq("id", id);
+  if (error) throw new Error(`Failed to update status: ${error.message}`);
 }
 
 export async function saveAddressVerification(id: string, result: AddressVerification): Promise<void> {
