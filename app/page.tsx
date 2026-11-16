@@ -89,7 +89,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section founder" aria-labelledby="founder-title">
+      <section id="founder" className="section founder" aria-labelledby="founder-title">
         <h2 id="founder-title">Meet the founder</h2>
         <p>
           Jim Rieck is a software architect and engineering leader who has built and supported business-critical

@@ -21,7 +21,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               Green Pastures Technology Group
             </Link>
             <nav>
-              <Link href="/">About</Link>
+              <Link href="/#founder">About</Link>
               <Link href="/contact">Contact us</Link>
             </nav>
           </div>

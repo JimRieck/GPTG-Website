@@ -190,6 +190,7 @@ h1 {
 }
 
 .founder {
+  scroll-margin-top: 24px; /* keep the heading visible when jumping here from the header */
   background: var(--green-100);
   border-radius: var(--radius);
   padding: 28px;
