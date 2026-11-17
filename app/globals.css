@@ -109,7 +109,14 @@ h1 {
 
 .hero h1 {
   color: #ffffff;
-  max-width: 22ch;
+  max-width: none;
+}
+
+/* Keep the headline on one line where there is room for it; small phones still wrap. */
+@media (min-width: 700px) {
+  .hero h1 {
+    white-space: nowrap;
+  }
 }
 
 .hero .lead {
