@@ -69,6 +69,45 @@ export async function getLocationBreakdown(start: string, end: string, referrer?
   );
 }
 
+export type HitRow = {
+  createdAt: string;
+  path: string;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  referrerDomain: string | null;
+};
+
+/** Latest individual hits in the range and selection, newest first. */
+export async function getRecentHits(start: string, end: string, filters: TrafficFilters = {}, limit = 200): Promise<HitRow[]> {
+  const { data, error } = await getServiceSupabase().rpc("page_view_log", {
+    start_day: start,
+    end_day: end,
+    tz: REPORT_TIME_ZONE,
+    p_country: filters.country ?? null,
+    p_region: filters.region ?? null,
+    p_city: filters.city ?? null,
+    p_referrer: filters.referrer ?? null,
+    p_limit: limit,
+  });
+  if (error) throw new Error(`Failed to load hits: ${error.message}`);
+  return ((data ?? []) as {
+    created_at: string;
+    path: string;
+    country: string | null;
+    region: string | null;
+    city: string | null;
+    referrer_domain: string | null;
+  }[]).map((row) => ({
+    createdAt: row.created_at,
+    path: row.path,
+    country: row.country,
+    region: row.region,
+    city: row.city,
+    referrerDomain: row.referrer_domain,
+  }));
+}
+
 /** Distinct referrers seen so far, for the "Came from" dropdown. */
 export async function getFilterOptions(): Promise<FilterOptions> {
   const { data, error } = await getServiceSupabase().rpc("page_view_filter_options");

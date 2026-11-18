@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { buildBarChart, shortDayLabel } from "@/lib/bar-chart";
 import { cleanFilters, DIRECT_REFERRER, parseDateRange } from "@/lib/traffic-rules";
-import { getDailyHits, getFilterOptions, getLocationBreakdown } from "@/lib/traffic";
+import { getDailyHits, getFilterOptions, getLocationBreakdown, getRecentHits } from "@/lib/traffic";
+import { formatEastern } from "@/lib/time";
 import {
   cityTotals,
   countryTotals,
@@ -31,6 +32,11 @@ type SearchParams = {
   city?: string;
   referrer?: string;
 };
+
+function formatLocation(h: { city: string | null; region: string | null; country: string | null }): string {
+  const parts = [h.city, h.region, h.country && countryName(h.country)].filter(Boolean);
+  return parts.length ? parts.join(", ") : "Unknown";
+}
 
 function countryName(code: string): string {
   return WORLD_MAP.locations.find((l) => l.id === code.toLowerCase())?.name ?? code;
@@ -78,10 +84,11 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
   const referrer = cleaned.referrer;
 
   const base = { from: range.start, to: range.end, referrer };
-  const [points, rows, options] = await Promise.all([
+  const [points, rows, options, hits] = await Promise.all([
     getDailyHits(range.start, range.end, { country, region, city, referrer }),
     getLocationBreakdown(range.start, range.end, referrer),
     getFilterOptions(),
+    getRecentHits(range.start, range.end, { country, region, city, referrer }, 200),
   ]);
 
   const total = points.reduce((sum, p) => sum + p.hits, 0);
@@ -252,6 +259,41 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
           ))}
         </svg>
       </figure>
+
+      <section className="recent-hits" aria-labelledby="recent-hits-title">
+        <h2 id="recent-hits-title">Recent hits</h2>
+        {hits.length === 0 ? (
+          <p className="muted">No hits match these filters.</p>
+        ) : (
+          <>
+            <p className="muted">
+              Newest first, up to 200. Times are Eastern.
+            </p>
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date and time</th>
+                    <th>Page</th>
+                    <th>Location</th>
+                    <th>Came from</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {hits.map((h, i) => (
+                    <tr key={`${h.createdAt}-${i}`}>
+                      <td>{formatEastern(h.createdAt)}</td>
+                      <td>{h.path}</td>
+                      <td>{formatLocation(h)}</td>
+                      <td>{h.referrerDomain ?? "Direct"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </section>
 
       <details className="traffic-table">
         <summary>Show countries and daily numbers as tables</summary>
