@@ -516,6 +516,36 @@ th {
   font-size: 0.9rem;
 }
 
+.admin-nav {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 0 0 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-nav a {
+  font-weight: 600;
+  color: var(--green-700);
+  text-decoration: none;
+  padding-bottom: 4px;
+}
+
+.admin-nav a[aria-current="page"] {
+  color: var(--green-900);
+  border-bottom: 3px solid var(--green-700);
+}
+
+.admin-nav-spacer {
+  flex: 1;
+}
+
+.admin-nav form {
+  margin: 0;
+}
+
 .date-range {
   display: flex;
   gap: 12px;

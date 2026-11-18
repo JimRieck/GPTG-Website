@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { buildBarChart, shortDayLabel } from "@/lib/bar-chart";
 import { cleanFilters, DIRECT_REFERRER, parseDateRange, type TrafficFilters } from "@/lib/traffic-rules";
 import { getDailyHits, getFilterOptions, REPORT_TIME_ZONE } from "@/lib/traffic";
-import { signOutAdmin } from "../actions";
+import AdminNav from "../AdminNav";
 
 export const metadata = {
   title: "Traffic",
@@ -82,20 +82,9 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
 
   return (
     <section className="wide-page">
-      <div className="admin-bar">
-        <h1>Site traffic</h1>
-        <div>
-          <Link href="/admin/leads" className="button secondary small">
-            Leads
-          </Link>{" "}
-          <span className="muted">{email}</span>{" "}
-          <form action={signOutAdmin} style={{ display: "inline" }}>
-            <button type="submit" className="button secondary">
-              Sign out
-            </button>
-          </form>
-        </div>
-      </div>
+      <AdminNav email={email} current="traffic" />
+
+      <h1>Site traffic</h1>
 
       <form method="get" className="date-range" aria-label="Choose a date range and filters">
         <label>

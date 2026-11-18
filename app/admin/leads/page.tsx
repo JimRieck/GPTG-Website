@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listLeads } from "@/lib/leads";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/lead-status";
-import { signOutAdmin } from "../actions";
+import AdminNav from "../AdminNav";
 import VerifyButton from "./VerifyButton";
 import { StatusForm } from "./LeadRowActions";
 import StatusPie from "./StatusPie";
@@ -31,6 +31,8 @@ export default async function LeadsPage({
 
   return (
     <section className="wide-page">
+      <AdminNav email={email} current="leads" />
+
       <StatusPie counts={counts} />
 
       <div className="admin-bar">
@@ -38,18 +40,9 @@ export default async function LeadsPage({
           {showArchived ? "Archived leads" : "Leads"} ({leads.length})
         </h1>
         <div>
-          <Link href="/admin/traffic" className="button secondary small">
-            Traffic
-          </Link>{" "}
           <Link href={showArchived ? "/admin/leads" : "/admin/leads?archived=1"} className="button secondary small">
             {showArchived ? "Hide archived" : "Show archived"}
-          </Link>{" "}
-          <span className="muted">{email}</span>{" "}
-          <form action={signOutAdmin} style={{ display: "inline" }}>
-            <button type="submit" className="button secondary">
-              Sign out
-            </button>
-          </form>
+          </Link>
         </div>
       </div>
 
