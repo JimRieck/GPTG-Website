@@ -5,6 +5,7 @@ export type LocationRow = {
   region: string | null;
   city: string | null;
   hits: number;
+  lastSeen: string | null; // ISO time of the most recent hit in this group
 };
 
 export type LocationSelection = {
@@ -13,7 +14,22 @@ export type LocationSelection = {
   city?: string;
 };
 
-export type Count = { name: string; hits: number };
+export type Count = { name: string; hits: number; lastSeen: string | null };
+
+/** Adds up counts per name, keeping the latest hit time. Largest first, then by name. */
+function tally(entries: { name: string; hits: number; lastSeen: string | null }[]): Count[] {
+  const byName = new Map<string, Count>();
+  for (const e of entries) {
+    const existing = byName.get(e.name);
+    if (!existing) {
+      byName.set(e.name, { ...e });
+    } else {
+      existing.hits += e.hits;
+      if (e.lastSeen && (!existing.lastSeen || e.lastSeen > existing.lastSeen)) existing.lastSeen = e.lastSeen;
+    }
+  }
+  return [...byName.values()].sort((a, b) => b.hits - a.hits || a.name.localeCompare(b.name));
+}
 
 function sum(rows: LocationRow[], keep: (r: LocationRow) => boolean): number {
   return rows.reduce((total, r) => (keep(r) ? total + r.hits : total), 0);
@@ -45,23 +61,20 @@ export function countryTotals(rows: LocationRow[]): Map<string, number> {
 
 /** Hits per region inside a country, largest first. */
 export function regionTotals(rows: LocationRow[], country: string): Count[] {
-  const totals = new Map<string, number>();
-  for (const r of rows) {
-    if (!r.region || r.country?.toUpperCase() !== country) continue;
-    totals.set(r.region, (totals.get(r.region) ?? 0) + r.hits);
-  }
-  return [...totals.entries()].map(([name, hits]) => ({ name, hits })).sort((a, b) => b.hits - a.hits || a.name.localeCompare(b.name));
+  return tally(
+    rows
+      .filter((r) => r.region && r.country?.toUpperCase() === country)
+      .map((r) => ({ name: r.region as string, hits: r.hits, lastSeen: r.lastSeen })),
+  );
 }
 
 /** Hits per city, narrowed by country and, when given, region. Largest first. */
 export function cityTotals(rows: LocationRow[], country: string, region?: string): Count[] {
-  const totals = new Map<string, number>();
-  for (const r of rows) {
-    if (!r.city || r.country?.toUpperCase() !== country) continue;
-    if (region && r.region !== region) continue;
-    totals.set(r.city, (totals.get(r.city) ?? 0) + r.hits);
-  }
-  return [...totals.entries()].map(([name, hits]) => ({ name, hits })).sort((a, b) => b.hits - a.hits || a.name.localeCompare(b.name));
+  return tally(
+    rows
+      .filter((r) => r.city && r.country?.toUpperCase() === country && (!region || r.region === region))
+      .map((r) => ({ name: r.city as string, hits: r.hits, lastSeen: r.lastSeen })),
+  );
 }
 
 /** Hits from visits with no country recorded (local development, or missing headers). */

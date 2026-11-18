@@ -64,9 +64,19 @@ export async function getLocationBreakdown(start: string, end: string, referrer?
     p_referrer: referrer ?? null,
   });
   if (error) throw new Error(`Failed to load locations: ${error.message}`);
-  return ((data ?? []) as { country: string | null; region: string | null; city: string | null; hits: number | string }[]).map(
-    (row) => ({ country: row.country, region: row.region, city: row.city, hits: Number(row.hits) }),
-  );
+  return ((data ?? []) as {
+    country: string | null;
+    region: string | null;
+    city: string | null;
+    hits: number | string;
+    last_seen: string | null;
+  }[]).map((row) => ({
+    country: row.country,
+    region: row.region,
+    city: row.city,
+    hits: Number(row.hits),
+    lastSeen: row.last_seen,
+  }));
 }
 
 export type HitRow = {

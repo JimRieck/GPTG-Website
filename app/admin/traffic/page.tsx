@@ -8,6 +8,7 @@ import {
   cityTotals,
   countryTotals,
   filterRows,
+  type Count,
   regionTotals,
   trafficHref,
   unknownLocationHits,
@@ -47,7 +48,7 @@ function regionName(country: string, code: string): string {
   return code;
 }
 
-function Places({ title, items, render }: { title: string; items: { name: string; hits: number }[]; render: (name: string) => string }) {
+function Places({ title, items, render }: { title: string; items: Count[]; render: (name: string) => string }) {
   return (
     <div>
       <h3 className="places-title">{title}</h3>
@@ -60,6 +61,7 @@ function Places({ title, items, render }: { title: string; items: { name: string
               <Link href={render(item.name)}>{item.name}</Link>{" "}
               <span className="muted">
                 {item.hits.toLocaleString("en-US")} {item.hits === 1 ? "hit" : "hits"}
+                {item.lastSeen && <> · last hit {formatEastern(item.lastSeen)}</>}
               </span>
             </li>
           ))}

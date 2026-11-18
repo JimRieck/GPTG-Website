@@ -11,12 +11,12 @@ import {
 } from "@/lib/traffic-geo";
 
 const rows: LocationRow[] = [
-  { country: "US", region: "CA", city: "San Jose", hits: 5 },
-  { country: "US", region: "CA", city: "Los Angeles", hits: 2 },
-  { country: "US", region: "TX", city: "Austin", hits: 4 },
-  { country: "us", region: "CA", city: "San Jose", hits: 1 },
-  { country: "CA", region: "ON", city: "Toronto", hits: 3 },
-  { country: null, region: null, city: null, hits: 7 },
+  { country: "US", region: "CA", city: "San Jose", hits: 5, lastSeen: "2026-11-10T12:00:00Z" },
+  { country: "US", region: "CA", city: "Los Angeles", hits: 2, lastSeen: "2026-11-01T12:00:00Z" },
+  { country: "US", region: "TX", city: "Austin", hits: 4, lastSeen: "2026-11-05T12:00:00Z" },
+  { country: "us", region: "CA", city: "San Jose", hits: 1, lastSeen: "2026-11-15T12:00:00Z" },
+  { country: "CA", region: "ON", city: "Toronto", hits: 3, lastSeen: "2026-11-02T12:00:00Z" },
+  { country: null, region: null, city: null, hits: 7, lastSeen: null },
 ];
 
 describe("countryTotals", () => {
@@ -31,8 +31,8 @@ describe("countryTotals", () => {
 describe("regionTotals", () => {
   it("lists regions in one country, largest first", () => {
     expect(regionTotals(rows, "US")).toEqual([
-      { name: "CA", hits: 8 },
-      { name: "TX", hits: 4 },
+      { name: "CA", hits: 8, lastSeen: "2026-11-15T12:00:00Z" },
+      { name: "TX", hits: 4, lastSeen: "2026-11-05T12:00:00Z" },
     ]);
   });
 
@@ -44,14 +44,14 @@ describe("regionTotals", () => {
 describe("cityTotals", () => {
   it("lists cities in a country, largest first", () => {
     expect(cityTotals(rows, "US")).toEqual([
-      { name: "San Jose", hits: 6 },
-      { name: "Austin", hits: 4 },
-      { name: "Los Angeles", hits: 2 },
+      { name: "San Jose", hits: 6, lastSeen: "2026-11-15T12:00:00Z" },
+      { name: "Austin", hits: 4, lastSeen: "2026-11-05T12:00:00Z" },
+      { name: "Los Angeles", hits: 2, lastSeen: "2026-11-01T12:00:00Z" },
     ]);
   });
 
   it("narrows to one region when given", () => {
-    expect(cityTotals(rows, "US", "TX")).toEqual([{ name: "Austin", hits: 4 }]);
+    expect(cityTotals(rows, "US", "TX")).toEqual([{ name: "Austin", hits: 4, lastSeen: "2026-11-05T12:00:00Z" }]);
   });
 });
 
@@ -66,8 +66,8 @@ describe("filterRows", () => {
 
   it("keeps only the selected region, so a state shows only its own traffic", () => {
     const michigan: LocationRow[] = [
-      { country: "US", region: "MI", city: "Redford", hits: 1 },
-      { country: "US", region: "MA", city: "Boston", hits: 2 },
+      { country: "US", region: "MI", city: "Redford", hits: 1, lastSeen: null },
+      { country: "US", region: "MA", city: "Boston", hits: 2, lastSeen: null },
     ];
     expect(filterRows(michigan, { country: "US", region: "MI" })).toEqual([michigan[0]]);
   });
