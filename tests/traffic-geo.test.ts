@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   cityTotals,
   countryTotals,
+  filterRows,
   regionTotals,
   shadeOpacity,
   trafficHref,
@@ -51,6 +52,24 @@ describe("cityTotals", () => {
 
   it("narrows to one region when given", () => {
     expect(cityTotals(rows, "US", "TX")).toEqual([{ name: "Austin", hits: 4 }]);
+  });
+});
+
+describe("filterRows", () => {
+  it("keeps everything with no selection", () => {
+    expect(filterRows(rows, {})).toHaveLength(rows.length);
+  });
+
+  it("keeps only the selected country", () => {
+    expect(filterRows(rows, { country: "US" }).every((r) => r.country?.toUpperCase() === "US")).toBe(true);
+  });
+
+  it("keeps only the selected region, so a state shows only its own traffic", () => {
+    const michigan: LocationRow[] = [
+      { country: "US", region: "MI", city: "Redford", hits: 1 },
+      { country: "US", region: "MA", city: "Boston", hits: 2 },
+    ];
+    expect(filterRows(michigan, { country: "US", region: "MI" })).toEqual([michigan[0]]);
   });
 });
 

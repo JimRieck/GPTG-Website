@@ -6,6 +6,7 @@ import { getDailyHits, getFilterOptions, getLocationBreakdown } from "@/lib/traf
 import {
   cityTotals,
   countryTotals,
+  filterRows,
   regionTotals,
   trafficHref,
   unknownLocationHits,
@@ -87,14 +88,16 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
   const chart = buildBarChart(points);
 
   // Map inputs. Country totals are keyed by lower-case id to match the map data.
-  const countries = countryTotals(rows);
+  // Everything below uses only the rows inside the selection, so a selected state shows only its own traffic.
+  const scoped = filterRows(rows, selection);
+  const countries = countryTotals(scoped);
   const countryHits = new Map([...countries].map(([code, hits]) => [code.toLowerCase(), hits]));
   const countryList = [...countries]
     .map(([code, hits]) => ({ name: code, hits }))
     .sort((a, b) => b.hits - a.hits);
-  const regions = country === "US" ? regionTotals(rows, "US") : country ? regionTotals(rows, country) : [];
+  const regions = country ? regionTotals(scoped, country) : [];
   const regionHits = new Map(regions.map((r) => [r.name.toLowerCase(), r.hits]));
-  const cities = country ? cityTotals(rows, country, region) : [];
+  const cities = country ? cityTotals(scoped, country, region) : [];
   const unknown = unknownLocationHits(rows);
 
   const countryHref = (id: string) => {

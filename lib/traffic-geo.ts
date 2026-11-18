@@ -19,6 +19,19 @@ function sum(rows: LocationRow[], keep: (r: LocationRow) => boolean): number {
   return rows.reduce((total, r) => (keep(r) ? total + r.hits : total), 0);
 }
 
+/**
+ * Keeps only the rows inside the selection. With a country selected, every map and list
+ * shows just that country; with a region or city, just that place inside it.
+ */
+export function filterRows(rows: LocationRow[], selection: LocationSelection): LocationRow[] {
+  return rows.filter((r) => {
+    if (selection.country && r.country?.toUpperCase() !== selection.country) return false;
+    if (selection.region && r.region !== selection.region) return false;
+    if (selection.city && r.city !== selection.city) return false;
+    return true;
+  });
+}
+
 /** Hits per country, keyed by upper-case ISO code. */
 export function countryTotals(rows: LocationRow[]): Map<string, number> {
   const totals = new Map<string, number>();
