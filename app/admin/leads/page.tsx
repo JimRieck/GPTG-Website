@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listLeads } from "@/lib/leads";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS, type LeadStatus } from "@/lib/lead-status";
+import { formatEastern } from "@/lib/time";
 import AdminNav from "../AdminNav";
 import VerifyButton from "./VerifyButton";
 import { StatusForm } from "./LeadRowActions";
@@ -67,7 +68,7 @@ export default async function LeadsPage({
             <tbody>
               {leads.map((lead) => (
                 <tr key={lead.id}>
-                  <td>{new Date(lead.created_at).toLocaleString("en-US")}</td>
+                  <td>{formatEastern(lead.created_at)}</td>
                   <td>{lead.name}</td>
                   <td>{lead.company_name ?? "—"}</td>
                   <td>
@@ -95,7 +96,7 @@ export default async function LeadsPage({
                     )}
                     {lead.address_verified_at && (
                       <small className="muted">
-                        Checked {new Date(lead.address_verified_at).toLocaleString("en-US")}
+                        Checked {formatEastern(lead.address_verified_at)}
                       </small>
                     )}
                   </td>

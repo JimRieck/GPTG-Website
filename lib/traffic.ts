@@ -2,9 +2,10 @@ import { getServiceSupabase } from "@/lib/supabase/service";
 import type { DailyPoint } from "@/lib/bar-chart";
 import type { TrafficFilters } from "@/lib/traffic-rules";
 import type { LocationRow } from "@/lib/traffic-geo";
+import { SITE_TIME_ZONE } from "@/lib/time";
 
-// Dates are grouped by UTC day. Change this if reports should follow a local time zone.
-export const REPORT_TIME_ZONE = "UTC";
+// Days are grouped by Eastern calendar day, matching the times shown on the admin pages.
+export const REPORT_TIME_ZONE = SITE_TIME_ZONE;
 
 export type VisitMeta = {
   country: string | null;

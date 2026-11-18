@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { buildBarChart, shortDayLabel } from "@/lib/bar-chart";
 import { cleanFilters, DIRECT_REFERRER, parseDateRange } from "@/lib/traffic-rules";
-import { getDailyHits, getFilterOptions, getLocationBreakdown, REPORT_TIME_ZONE } from "@/lib/traffic";
+import { getDailyHits, getFilterOptions, getLocationBreakdown } from "@/lib/traffic";
 import {
   cityTotals,
   countryTotals,
@@ -218,7 +218,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
       <p className="muted">
         {total.toLocaleString("en-US")} {total === 1 ? "hit" : "hits"} from {shortDayLabel(range.start)} to{" "}
         {shortDayLabel(range.end)} ({points.length} {points.length === 1 ? "day" : "days"}).
-        {hasFilters ? ` Filtered by ${filterParts.join(", ")}.` : ""} Days are counted in {REPORT_TIME_ZONE} time.
+        {hasFilters ? ` Filtered by ${filterParts.join(", ")}.` : ""} Days are counted in Eastern time.
         {unknown > 0 && ` ${unknown.toLocaleString("en-US")} ${unknown === 1 ? "hit has" : "hits have"} no location recorded.`}
       </p>
 
