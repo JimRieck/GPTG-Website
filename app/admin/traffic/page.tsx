@@ -172,31 +172,33 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
       </nav>
       <p className="muted">Click a country on the map to filter by it. Click again to clear it.</p>
 
-      <figure className="map-figure">
-        <LocationMap
-          map={WORLD_MAP}
-          hits={countryHits}
-          selectedId={country?.toLowerCase()}
-          hrefFor={countryHref}
-          label="World map of hits by country. Select a country to filter."
-        />
-        <figcaption className="muted">
-          Country outlines: @svg-maps (CC-BY-4.0). Hits are counted by the visitor&apos;s country.
-        </figcaption>
-      </figure>
-
-      {country === "US" && (
+      <div className={country === "US" ? "map-row" : undefined}>
         <figure className="map-figure">
           <LocationMap
-            map={US_STATES_MAP}
-            hits={regionHits}
-            selectedId={region?.toLowerCase()}
-            hrefFor={regionHref}
-            label="Map of US states. Select a state to filter."
+            map={WORLD_MAP}
+            hits={countryHits}
+            selectedId={country?.toLowerCase()}
+            hrefFor={countryHref}
+            label="World map of hits by country. Select a country to filter."
           />
-          <figcaption className="muted">Select a state to filter by it. Click again to clear it.</figcaption>
+          <figcaption className="muted">
+            Country outlines: @svg-maps (CC-BY-4.0). Hits are counted by the visitor&apos;s country.
+          </figcaption>
         </figure>
-      )}
+
+        {country === "US" && (
+          <figure className="map-figure">
+            <LocationMap
+              map={US_STATES_MAP}
+              hits={regionHits}
+              selectedId={region?.toLowerCase()}
+              hrefFor={regionHref}
+              label="Map of US states. Select a state to filter."
+            />
+            <figcaption className="muted">Select a state to filter by it. Click again to clear it.</figcaption>
+          </figure>
+        )}
+      </div>
 
       {country && (
         <div className="places-grid">
