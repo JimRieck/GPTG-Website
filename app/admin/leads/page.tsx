@@ -38,6 +38,9 @@ export default async function LeadsPage({
           {showArchived ? "Archived leads" : "Leads"} ({leads.length})
         </h1>
         <div>
+          <Link href="/admin/traffic" className="button secondary small">
+            Traffic
+          </Link>{" "}
           <Link href={showArchived ? "/admin/leads" : "/admin/leads?archived=1"} className="button secondary small">
             {showArchived ? "Hide archived" : "Show archived"}
           </Link>{" "}
