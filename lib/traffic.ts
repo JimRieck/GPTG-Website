@@ -1,6 +1,7 @@
 import { getServiceSupabase } from "@/lib/supabase/service";
 import type { DailyPoint } from "@/lib/bar-chart";
 import type { TrafficFilters } from "@/lib/traffic-rules";
+import type { LocationRow } from "@/lib/traffic-geo";
 
 // Dates are grouped by UTC day. Change this if reports should follow a local time zone.
 export const REPORT_TIME_ZONE = "UTC";
@@ -53,7 +54,21 @@ export async function getDailyHits(start: string, end: string, filters: TrafficF
   }));
 }
 
-/** Distinct locations and referrers seen so far, for the filter dropdowns. */
+/** Hits grouped by country, region, and city for the map. Honours the date range and referrer. */
+export async function getLocationBreakdown(start: string, end: string, referrer?: string): Promise<LocationRow[]> {
+  const { data, error } = await getServiceSupabase().rpc("page_view_breakdown", {
+    start_day: start,
+    end_day: end,
+    tz: REPORT_TIME_ZONE,
+    p_referrer: referrer ?? null,
+  });
+  if (error) throw new Error(`Failed to load locations: ${error.message}`);
+  return ((data ?? []) as { country: string | null; region: string | null; city: string | null; hits: number | string }[]).map(
+    (row) => ({ country: row.country, region: row.region, city: row.city, hits: Number(row.hits) }),
+  );
+}
+
+/** Distinct referrers seen so far, for the "Came from" dropdown. */
 export async function getFilterOptions(): Promise<FilterOptions> {
   const { data, error } = await getServiceSupabase().rpc("page_view_filter_options");
   if (error) throw new Error(`Failed to load filter options: ${error.message}`);

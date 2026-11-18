@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { buildBarChart, shortDayLabel } from "@/lib/bar-chart";
-import { cleanFilters, DIRECT_REFERRER, parseDateRange, type TrafficFilters } from "@/lib/traffic-rules";
-import { getDailyHits, getFilterOptions, REPORT_TIME_ZONE } from "@/lib/traffic";
+import { cleanFilters, DIRECT_REFERRER, parseDateRange } from "@/lib/traffic-rules";
+import { getDailyHits, getFilterOptions, getLocationBreakdown, REPORT_TIME_ZONE } from "@/lib/traffic";
+import {
+  cityTotals,
+  countryTotals,
+  regionTotals,
+  trafficHref,
+  unknownLocationHits,
+  type LocationSelection,
+} from "@/lib/traffic-geo";
+import { US_STATES_MAP, WORLD_MAP } from "@/lib/maps/world-map-data";
 import AdminNav from "../AdminNav";
+import LocationMap from "./LocationMap";
 
 export const metadata = {
   title: "Traffic",
@@ -21,47 +31,35 @@ type SearchParams = {
   referrer?: string;
 };
 
-function FilterSelect({
-  name,
-  label,
-  value,
-  options,
-  allLabel,
-  optionLabel,
-}: {
-  name: string;
-  label: string;
-  value: string | undefined;
-  options: string[];
-  allLabel: string;
-  optionLabel?: (value: string) => string;
-}) {
-  // Keep a chosen value visible even if it is no longer in the list of seen values.
-  const list = value && !options.includes(value) ? [...options, value] : options;
-  return (
-    <label>
-      <span>{label}</span>
-      <select name={name} defaultValue={value ?? ""}>
-        <option value="">{allLabel}</option>
-        {list.map((opt) => (
-          <option key={opt} value={opt}>
-            {optionLabel ? optionLabel(opt) : opt}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
+function countryName(code: string): string {
+  return WORLD_MAP.locations.find((l) => l.id === code.toLowerCase())?.name ?? code;
 }
 
-function describeFilters(filters: TrafficFilters): string {
-  const parts: string[] = [];
-  if (filters.country) parts.push(`country ${filters.country}`);
-  if (filters.region) parts.push(`region ${filters.region}`);
-  if (filters.city) parts.push(`city ${filters.city}`);
-  if (filters.referrer) {
-    parts.push(filters.referrer === DIRECT_REFERRER ? "direct visits" : `referred from ${filters.referrer}`);
-  }
-  return parts.length ? ` Filtered by ${parts.join(", ")}.` : "";
+function regionName(country: string, code: string): string {
+  if (country === "US") return US_STATES_MAP.locations.find((l) => l.id === code.toLowerCase())?.name ?? code;
+  return code;
+}
+
+function Places({ title, items, render }: { title: string; items: { name: string; hits: number }[]; render: (name: string) => string }) {
+  return (
+    <div>
+      <h3 className="places-title">{title}</h3>
+      {items.length === 0 ? (
+        <p className="muted">No visits yet.</p>
+      ) : (
+        <ol className="places">
+          {items.map((item) => (
+            <li key={item.name}>
+              <Link href={render(item.name)}>{item.name}</Link>{" "}
+              <span className="muted">
+                {item.hits.toLocaleString("en-US")} {item.hits === 1 ? "hit" : "hits"}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </div>
+  );
 }
 
 export default async function TrafficPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -69,16 +67,58 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
   const params = await searchParams;
   const today = new Date().toISOString().slice(0, 10);
   const range = parseDateRange(params.from, params.to, today);
-  const filters = cleanFilters(params);
+  const cleaned = cleanFilters({ referrer: params.referrer });
 
-  const [points, options] = await Promise.all([
-    getDailyHits(range.start, range.end, filters),
+  // Location selection comes from map clicks. Region and city only make sense inside a country.
+  const country = params.country?.trim().toUpperCase().slice(0, 2) || undefined;
+  const region = country && params.region?.trim() ? params.region.trim().toUpperCase().slice(0, 10) : undefined;
+  const city = country && params.city?.trim() ? params.city.trim().slice(0, 100) : undefined;
+  const selection: LocationSelection = { country, region, city };
+  const referrer = cleaned.referrer;
+
+  const base = { from: range.start, to: range.end, referrer };
+  const [points, rows, options] = await Promise.all([
+    getDailyHits(range.start, range.end, { country, region, city, referrer }),
+    getLocationBreakdown(range.start, range.end, referrer),
     getFilterOptions(),
   ]);
 
   const total = points.reduce((sum, p) => sum + p.hits, 0);
   const chart = buildBarChart(points);
-  const hasFilters = Object.values(filters).some(Boolean);
+
+  // Map inputs. Country totals are keyed by lower-case id to match the map data.
+  const countries = countryTotals(rows);
+  const countryHits = new Map([...countries].map(([code, hits]) => [code.toLowerCase(), hits]));
+  const countryList = [...countries]
+    .map(([code, hits]) => ({ name: code, hits }))
+    .sort((a, b) => b.hits - a.hits);
+  const regions = country === "US" ? regionTotals(rows, "US") : country ? regionTotals(rows, country) : [];
+  const regionHits = new Map(regions.map((r) => [r.name.toLowerCase(), r.hits]));
+  const cities = country ? cityTotals(rows, country, region) : [];
+  const unknown = unknownLocationHits(rows);
+
+  const countryHref = (id: string) => {
+    const code = id.toUpperCase();
+    return code === country ? trafficHref(base) : trafficHref(base, { country: code });
+  };
+  const regionHref = (id: string) => {
+    const code = id.toUpperCase();
+    return code === region ? trafficHref(base, { country }) : trafficHref(base, { country, region: code });
+  };
+  const cityHref = (name: string) => trafficHref(base, { country, region, city: name });
+
+  // Summary and breadcrumbs.
+  const crumbs: { label: string; href?: string }[] = [{ label: "All countries", href: country ? trafficHref(base) : undefined }];
+  if (country) crumbs.push({ label: countryName(country), href: region || city ? trafficHref(base, { country }) : undefined });
+  if (region) crumbs.push({ label: regionName(country!, region), href: city ? trafficHref(base, { country, region }) : undefined });
+  if (city) crumbs.push({ label: city });
+
+  const filterParts: string[] = [];
+  if (city) filterParts.push(`city ${city}`);
+  else if (region) filterParts.push(`region ${regionName(country!, region)}`);
+  else if (country) filterParts.push(`country ${countryName(country)}`);
+  if (referrer) filterParts.push(referrer === DIRECT_REFERRER ? "direct visits" : `referred from ${referrer}`);
+  const hasFilters = filterParts.length > 0;
 
   return (
     <section className="wide-page">
@@ -86,7 +126,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
 
       <h1>Site traffic</h1>
 
-      <form method="get" className="date-range" aria-label="Choose a date range and filters">
+      <form method="get" className="date-range" aria-label="Choose a date range and source">
         <label>
           <span>From</span>
           <input type="date" name="from" defaultValue={range.start} max={today} required />
@@ -95,33 +135,89 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
           <span>To</span>
           <input type="date" name="to" defaultValue={range.end} max={today} required />
         </label>
-        <FilterSelect name="country" label="Country" value={filters.country} options={options.countries} allLabel="All countries" />
-        <FilterSelect name="region" label="Region / state" value={filters.region} options={options.regions} allLabel="All regions" />
-        <FilterSelect name="city" label="City" value={filters.city} options={options.cities} allLabel="All cities" />
-        <FilterSelect
-          name="referrer"
-          label="Came from"
-          value={filters.referrer}
-          options={options.referrers}
-          allLabel="Any source"
-          optionLabel={(v) => (v === DIRECT_REFERRER ? "Direct (no referrer)" : v)}
-        />
+        <label>
+          <span>Came from</span>
+          <select name="referrer" defaultValue={referrer ?? ""}>
+            <option value="">Any source</option>
+            <option value={DIRECT_REFERRER}>Direct (no referrer)</option>
+            {options.referrers.map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </label>
+        {country && <input type="hidden" name="country" value={country} />}
+        {region && <input type="hidden" name="region" value={region} />}
+        {city && <input type="hidden" name="city" value={city} />}
         <button type="submit" className="button">
           Show hits
         </button>
-        {hasFilters && (
+        {(hasFilters || referrer) && (
           <Link href={`/admin/traffic?from=${range.start}&to=${range.end}`} className="button secondary">
-            Clear filters
+            Clear all filters
           </Link>
         )}
       </form>
 
       {range.error && <p className="notice error">{range.error} Showing the last 30 days instead.</p>}
 
+      <nav className="crumbs" aria-label="Location filter">
+        {crumbs.map((c, i) => (
+          <span key={c.label + i}>
+            {i > 0 && <span className="crumb-sep" aria-hidden="true"> › </span>}
+            {c.href ? <Link href={c.href}>{c.label}</Link> : <strong>{c.label}</strong>}
+          </span>
+        ))}
+      </nav>
+      <p className="muted">Click a country on the map to filter by it. Click again to clear it.</p>
+
+      <figure className="map-figure">
+        <LocationMap
+          map={WORLD_MAP}
+          hits={countryHits}
+          selectedId={country?.toLowerCase()}
+          hrefFor={countryHref}
+          label="World map of hits by country. Select a country to filter."
+        />
+        <figcaption className="muted">
+          Country outlines: @svg-maps (CC-BY-4.0). Hits are counted by the visitor&apos;s country.
+        </figcaption>
+      </figure>
+
+      {country === "US" && (
+        <figure className="map-figure">
+          <LocationMap
+            map={US_STATES_MAP}
+            hits={regionHits}
+            selectedId={region?.toLowerCase()}
+            hrefFor={regionHref}
+            label="Map of US states. Select a state to filter."
+          />
+          <figcaption className="muted">Select a state to filter by it. Click again to clear it.</figcaption>
+        </figure>
+      )}
+
+      {country && (
+        <div className="places-grid">
+          <Places
+            title={country === "US" ? "States" : "Regions"}
+            items={regions}
+            render={regionHref}
+          />
+          <Places
+            title="Cities"
+            items={cities}
+            render={(name) => cityHref(name)}
+          />
+        </div>
+      )}
+
       <p className="muted">
         {total.toLocaleString("en-US")} {total === 1 ? "hit" : "hits"} from {shortDayLabel(range.start)} to{" "}
         {shortDayLabel(range.end)} ({points.length} {points.length === 1 ? "day" : "days"}).
-        {describeFilters(filters)} Days are counted in {REPORT_TIME_ZONE} time.
+        {hasFilters ? ` Filtered by ${filterParts.join(", ")}.` : ""} Days are counted in {REPORT_TIME_ZONE} time.
+        {unknown > 0 && ` ${unknown.toLocaleString("en-US")} ${unknown === 1 ? "hit has" : "hits have"} no location recorded.`}
       </p>
 
       <figure className="traffic-figure">
@@ -140,14 +236,7 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
             </g>
           ))}
           {chart.bars.map((bar) => (
-            <rect
-              key={bar.day}
-              x={bar.x}
-              y={bar.y}
-              width={bar.width}
-              height={Math.max(bar.height, 0)}
-              className="traffic-bar"
-            >
+            <rect key={bar.day} x={bar.x} y={bar.y} width={bar.width} height={Math.max(bar.height, 0)} className="traffic-bar">
               <title>{`${shortDayLabel(bar.day)}: ${bar.hits} ${bar.hits === 1 ? "hit" : "hits"}`}</title>
             </rect>
           ))}
@@ -160,7 +249,27 @@ export default async function TrafficPage({ searchParams }: { searchParams: Prom
       </figure>
 
       <details className="traffic-table">
-        <summary>Show as a table</summary>
+        <summary>Show countries and daily numbers as tables</summary>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Country</th>
+                <th>Hits</th>
+              </tr>
+            </thead>
+            <tbody>
+              {countryList.map((c) => (
+                <tr key={c.name}>
+                  <td>
+                    <Link href={countryHref(c.name)}>{countryName(c.name)}</Link>
+                  </td>
+                  <td>{c.hits.toLocaleString("en-US")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <div className="table-wrap">
           <table>
             <thead>
