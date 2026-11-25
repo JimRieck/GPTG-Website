@@ -232,6 +232,36 @@ h1 {
   margin: 0;
 }
 
+/* Photo on the left of the bio; stacks above it on phones. */
+.founder-body {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+}
+
+.founder-photo {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--card);
+}
+
+.founder-photo img {
+  object-fit: cover;
+}
+
+@media (max-width: 600px) {
+  .founder-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .founder-photo {
+    max-width: 260px;
+  }
+}
+
 .question {
   font-size: 1.25rem;
   font-weight: 600;

@@ -63,11 +63,21 @@ export default function HomePage() {
 
       <section id="founder" className="section founder" aria-labelledby="founder-title">
         <h2 id="founder-title">Meet the founder</h2>
-        <p>
-          Jim Rieck is a hands-on software architect and engineering leader. He has built business-critical
-          applications, led engineering teams, and moved legacy workloads to Azure. He started Green Pastures to bring
-          that experience to small businesses and nonprofits that need practical software and a clear plan.
-        </p>
+        <div className="founder-body">
+          <div className="founder-photo">
+            <Image
+              src="/images/jim%20head%20shot%202.jpeg"
+              alt="Jim Rieck, founder of Green Pastures Technology Group"
+              fill
+              sizes="(max-width: 600px) 260px, 220px"
+            />
+          </div>
+          <p>
+            Jim Rieck is a hands-on software architect and engineering leader. He has built business-critical
+            applications, led engineering teams, and moved legacy workloads to Azure. He started Green Pastures to bring
+            that experience to small businesses and nonprofits that need practical software and a clear plan.
+          </p>
+        </div>
       </section>
 
       <section className="section" aria-labelledby="how-title">
