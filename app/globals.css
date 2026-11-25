@@ -109,13 +109,32 @@ h1 {
 
 .hero h1 {
   color: #ffffff;
-  max-width: none;
+  max-width: 26ch;
 }
 
-/* Keep the headline on one line where there is room for it; small phones still wrap. */
-@media (min-width: 700px) {
-  .hero h1 {
-    white-space: nowrap;
+/* Desktop: sunrise image first, then the headline and button. */
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero .banner {
+  order: 1;
+}
+
+.hero-text {
+  order: 2;
+}
+
+/* Phones: headline, supporting copy, and button first, then the image. */
+@media (max-width: 700px) {
+  .hero-text {
+    order: 1;
+  }
+
+  .hero .banner {
+    order: 2;
+    margin: 28px 0 0;
   }
 }
 
@@ -135,6 +154,10 @@ h1 {
 
 .hero .banner {
   margin: 0 0 36px;
+}
+
+.hero-text .lead {
+  margin-bottom: 24px;
 }
 
 .section {

@@ -2,38 +2,23 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata = {
-  title: "Practical software for growing organizations",
+  title: "Plan, build, and modernize software",
   description:
-    "Green Pastures Technology Group builds websites, connects systems, and automates everyday workflows for nonprofits and small businesses.",
+    "Green Pastures Technology Group helps small businesses and nonprofits plan new software projects, build applications from the ground up, and modernize the systems they rely on.",
 };
-
-const problems = [
-  {
-    title: "Event registration and check-in",
-    body: "Replace spreadsheets and paper sign-in sheets with an online registration form, confirmation emails, and a simple check-in list for event day.",
-  },
-  {
-    title: "Duplicate data entry",
-    body: "When the same donor, customer, or order is typed into two systems, mistakes creep in. We connect the systems so each record is entered once and updated everywhere.",
-  },
-  {
-    title: "One place to track requests",
-    body: "Keep requests, documents, or inventory in a shared tool that staff can search, update, and report on, instead of scattered files and inboxes.",
-  },
-];
 
 const services = [
   {
-    title: "Websites and web apps",
-    body: "A public site that explains what you do and makes it easy to get in touch, or an internal app for requests, sign-ups, or records.",
+    title: "Project Roadmaps",
+    body: "Have an idea or a business problem and need a plan? We clarify what the software needs to do, evaluate build-versus-buy options, and lay out what to tackle first, what it may cost, and what decisions come next.",
   },
   {
-    title: "Workflow automation",
-    body: "Automatic reminders, approvals, and notifications, so routine steps happen without someone having to remember them.",
+    title: "New Software Development",
+    body: "Need an application you can't get off the shelf? We design and build new software around how your team works, from the first usable release through deployment. Examples include customer portals, internal tools, and web applications.",
   },
   {
-    title: "System integrations",
-    body: "Connecting the tools you already use, such as a donor database and a spreadsheet, so information moves between them on its own.",
+    title: "Modernization",
+    body: "Have software that still does important work but is harder to maintain or extend? We help move on-premises applications to the cloud, update legacy software in phases, and add AI where it solves a specific problem, such as reviewing documents or summarizing information for staff.",
   },
 ];
 
@@ -41,7 +26,17 @@ export default function HomePage() {
   return (
     <>
       <section className="band hero" aria-labelledby="hero-title">
-        <div className="container">
+        <div className="container hero-inner">
+          <div className="hero-text">
+            <h1 id="hero-title">Plan your next software project. Build it or modernize what you have.</h1>
+            <p className="lead">
+              Green Pastures Technology Group helps small businesses and nonprofits turn software ideas into practical
+              roadmaps, build applications from the ground up, and modernize the systems they rely on.
+            </p>
+            <Link href="/contact" className="button on-dark">
+              Talk about your project
+            </Link>
+          </div>
           <Image
             src="/images/banner.png"
             width={2172}
@@ -51,34 +46,11 @@ export default function HomePage() {
             sizes="(max-width: 1100px) 100vw, 1100px"
             className="banner"
           />
-          <h1 id="hero-title">Spend less time on manual work.</h1>
-          <p className="lead">
-            Green Pastures Technology Group builds websites, connects systems, and automates everyday workflows
-            for nonprofits and small businesses.
-          </p>
-          <Link href="/contact" className="button on-dark">
-            Start a conversation
-          </Link>
         </div>
       </section>
 
-      <section className="section" aria-labelledby="problems-title">
-        <h2 id="problems-title">Problems we can help with</h2>
-        <p className="section-intro">
-          These are examples of the kind of work we take on.
-        </p>
-        <ul className="stack">
-          {problems.map((item) => (
-            <li key={item.title} className="item">
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="section" aria-labelledby="services-title">
-        <h2 id="services-title">What we build</h2>
+      <section className="section" aria-labelledby="help-title">
+        <h2 id="help-title">How we can help</h2>
         <div className="service-grid">
           {services.map((item) => (
             <article key={item.title} className="service">
@@ -92,21 +64,20 @@ export default function HomePage() {
       <section id="founder" className="section founder" aria-labelledby="founder-title">
         <h2 id="founder-title">Meet the founder</h2>
         <p>
-          Jim Rieck is a software architect and engineering leader who has built and supported business-critical
-          applications. He started Green Pastures to bring that experience to smaller teams that need practical
-          software and a clear plan.
+          Jim Rieck is a hands-on software architect and engineering leader. He has built business-critical
+          applications, led engineering teams, and moved legacy workloads to Azure. He started Green Pastures to bring
+          that experience to small businesses and nonprofits that need practical software and a clear plan.
         </p>
       </section>
 
       <section className="section" aria-labelledby="how-title">
         <h2 id="how-title">How we work</h2>
         <p>
-          We start by understanding how your work gets done today. Then we agree on scope, cost, and timeline
-          before any work begins, so there are no surprises about cost or timing.
+          We start by understanding the business problem and the systems you already have. Then we agree on scope,
+          cost, and timeline before any implementation begins.
         </p>
-        <p className="question">What&apos;s one process you wish were easier?</p>
         <Link href="/contact" className="button">
-          Tell us about it
+          Talk about your project
         </Link>
       </section>
     </>
